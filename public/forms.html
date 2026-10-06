@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Résultats des Formulaires - Classe 1G_H</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); padding: 2rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem; }
+    .btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .response-row { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card-header" style="background:var(--surface); padding: 1rem; border-radius: var(--radius); margin-bottom: 2rem;">
+      <h1>📊 Résultats de tous les formulaires</h1>
+      <a href="index.html" class="btn btn-outline">⬅ Retour à l'accueil</a>
+    </div>
+
+    <div id="access-denied" class="card hidden" style="border-color: #f87171; background: #fef2f2; color: #991b1b;">
+      <h3>⛔ Accès refusé</h3>
+      <p>Cette page est strictement réservée aux administrateurs et au webmaster.</p>
+    </div>
+
+    <div id="forms-content" class="hidden">
+      <!-- Section Formulaire Délégués -->
+      <div class="card">
+        <h2>📋 Retours - Boîte à idées Délégués</h2>
+        <div id="delegate-results" style="margin-top: 1rem;">Chargement...</div>
+      </div>
+
+      <!-- Section Formulaire Mouvement Lycéen -->
+      <div class="card" style="margin-top: 2rem;">
+        <h2>✊ Résultats - Consultation Mouvement Lycéen</h2>
+        <div id="mouvement-results" style="margin-top: 1rem;">Chargement...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const authToken = localStorage.getItem('site_token');
+
+    async function checkAccess() {
+      if (!authToken) {
+        showDenied();
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await res.json();
+        if (!res.ok || (data.profile?.role !== 'admin' && data.profile?.role !== 'webmaster')) {
+          showDenied();
+        } else {
+          document.getElementById('forms-content').classList.remove('hidden');
+          loadDelegateResults();
+          loadMouvementResults();
+        }
+      } catch (e) {
+        showDenied();
+      }
+    }
+
+    function showDenied() {
+      document.getElementById('access-denied').classList.remove('hidden');
+    }
+
+    async function loadDelegateResults() {
+      try {
+        const res = await fetch('/api/intake/responses', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const responses = await res.json();
+        const container = document.getElementById('delegate-results');
+        container.innerHTML = responses.map(r => `
+          <div class="response-row">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+              <strong>👤 ${r.profiles?.full_name || r.profiles?.email || 'Élève'}</strong>
+              <small style="color:var(--text-muted);">${new Date(r.created_at).toLocaleDateString()}</small>
+            </div>
+            <p><strong>Info :</strong> ${r.info || 'Aucune'}</p>
+          </div>
+        `).join('') || '<p style="color:var(--text-muted);">Aucune réponse.</p>';
+      } catch (e) {
+        document.getElementById('delegate-results').innerHTML = '<p style="color:red;">Erreur de chargement.</p>';
+      }
+    }
+
+    async function loadMouvementResults() {
+      try {
+        const res = await fetch('/api/mouvement/responses', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const responses = await res.json();
+        const container = document.getElementById('mouvement-results');
+        container.innerHTML = responses.map(r => `
+          <div class="response-row">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+              <strong>👤 ${r.profiles?.full_name || r.profiles?.email || 'Élève'}</strong>
+              <small style="color:var(--text-muted);">${new Date(r.created_at).toLocaleDateString()}</small>
+            </div>
+            <p style="margin-bottom: 0.4rem;"><strong>Difficultés rencontrées :</strong><br>${r.difficulties || 'Non renseigné'}</p>
+            <p><strong>Améliorations souhaitées :</strong><br>${r.improvements || 'Non renseigné'}</p>
+          </div>
+        `).join('') || '<p style="color:var(--text-muted);">Aucune réponse.</p>';
+      } catch (e) {
+        document.getElementById('mouvement-results').innerHTML = '<p style="color:red;">Erreur de chargement.</p>';
+      }
+    }
+
+    checkAccess();
+  </script>
+</body>
+</html>
