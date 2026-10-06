@@ -1,294 +1,284 @@
-const { createClient } = require('@supabase/supabase-js');
+import base64
+import mimetypes
+import os
+import re
+import time
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+from flask import Flask, jsonify, request
+from supabase import create_client
 
-const supabasePublic = createClient(SUPABASE_URL || '', SUPABASE_ANON_KEY || '');
-const supabaseAdmin = createClient(SUPABASE_URL || '', SUPABASE_SERVICE_ROLE_KEY || '');
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
+SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
-async function getAuthContext(event) {
-  const authHeader = event.headers.authorization || event.headers.Authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.split(' ')[1];
+supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-  if (error || !user) return null;
+app = Flask(__name__)
 
-  const { data: profile } = await supabaseAdmin.from('profiles').select('*').eq('id', user.id).single();
-  return { user, profile, token };
-}
 
-exports.handler = async (event) => {
-  const path = event.path.replace(/^\/api\/?/, '').replace(/^\/\.netlify\/functions\/api\/?/, '');
-  const method = event.httpMethod;
-  const body = event.body ? JSON.parse(event.body) : {};
+def json_response(status, data):
+    return jsonify(data), status
 
-  const json = (statusCode, data) => ({
-    statusCode,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
 
-  try {
-    if (path === 'auth/login' && method === 'POST') {
-      const { email, password } = body;
-      const { data, error } = await supabasePublic.auth.signInWithPassword({ email, password });
-      if (error) return json(400, { error: error.message });
+def get_profile(user_id):
+    res = supabase_admin.table("profiles").select("*").eq("id", user_id).limit(1).execute()
+    return res.data[0] if res.data else None
 
-      const { data: profile } = await supabaseAdmin.from('profiles').select('*').eq('id', data.user.id).single();
-      return json(200, { token: data.session.access_token, user: data.user, profile });
-    }
 
-    if (path === 'posts' && method === 'GET') {
-      const { data, error } = await supabaseAdmin.from('posts').select('*').order('created_at', { ascending: false });
-      if (error) return json(500, { error: error.message });
-      return json(200, data);
-    }
+def get_auth_context():
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return None
+    token = auth_header.split(" ", 1)[1]
+    try:
+        res = supabase_admin.auth.get_user(token)
+    except Exception:
+        return None
+    user = getattr(res, "user", None)
+    if not user:
+        return None
+    return {"user": user, "profile": get_profile(user.id), "token": token}
 
-    if (path === 'sheets/approved' && method === 'GET') {
-      const { data, error } = await supabaseAdmin.from('revision_sheets').select('*').eq('status', 'approved').order('created_at', { ascending: false });
-      if (error) return json(500, { error: error.message });
-      return json(200, data);
-    }
 
-    const auth = await getAuthContext(event);
-    if (!auth) return json(401, { error: "Non autorisé. Veuillez vous connecter." });
+def normalize_path():
+    """Retourne le chemin sans le préfixe /api (ex: 'auth/login')."""
+    path = request.path
+    path = re.sub(r"^/\.netlify/functions/api/?", "", path)
+    path = re.sub(r"^/api/?", "", path)
+    path = path.strip("/")
+    # Si Vercel a réécrit vers /api/index?path=..., on récupère le vrai chemin
+    if path in ("", "index") and request.args.get("path"):
+        path = request.args["path"].strip("/")
+    return path
 
-    const { user, profile } = auth;
-    const isAdmin = profile?.role === 'admin' || profile?.role === 'webmaster';
-    const isWebmaster = profile?.role === 'webmaster';
 
-    if (path === 'auth/me' && method === 'GET') {
-      return json(200, { user, profile });
-    }
+def user_to_dict(user):
+    return user.model_dump(mode="json") if hasattr(user, "model_dump") else dict(user)
 
-    if (path === 'auth/change-password' && method === 'POST') {
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(user.id, { password: body.new_password });
-      if (error) return json(400, { error: error.message });
-      return json(200, { message: "Mot de passe mis à jour." });
-    }
 
-    if (path === 'results/my' && method === 'GET') {
-      const { data, error } = await supabaseAdmin.from('student_results').select('*').eq('student_id', user.id).order('updated_at', { ascending: false });
-      if (error) return json(500, { error: error.message });
-      return json(200, data);
-    }
+def combine_with_profiles(responses):
+    profiles = supabase_admin.table("profiles").select("id, full_name, email").execute().data or []
+    profile_map = {p["id"]: p for p in profiles}
+    return [
+        {**r, "profiles": profile_map.get(r["student_id"], {"full_name": "Élève inconnu", "email": ""})}
+        for r in (responses or [])
+    ]
 
-    if (path === 'sheets/my' && method === 'GET') {
-      const { data, error } = await supabaseAdmin.from('revision_sheets').select('*').eq('created_by', user.id).order('created_at', { ascending: false });
-      if (error) return json(500, { error: error.message });
-      return json(200, data);
-    }
 
-    if (path === 'sheets/upload' && method === 'POST') {
-      const { title, subject, fileName, fileBase64 } = body;
-      const buffer = Buffer.from(fileBase64.replace(/^data:.*;base64,/, ''), 'base64');
-      const fileExt = fileName.split('.').pop();
-      const storagePath = `${user.id}/${Date.now()}.${fileExt}`;
+@app.route("/", defaults={"_": ""}, methods=["GET", "POST", "OPTIONS"])
+@app.route("/<path:_>", methods=["GET", "POST", "OPTIONS"])
+def handler(_):
+    path = normalize_path()
+    method = request.method
+    body = request.get_json(silent=True) or {}
+    db = supabase_admin
 
-      const { error: uploadError } = await supabaseAdmin.storage.from('revision_files').upload(storagePath, buffer, {
-        contentType: fileBase64.substring(fileBase64.indexOf(':') + 1, fileBase64.indexOf(';'))
-      });
-      if (uploadError) return json(500, { error: uploadError.message });
+    try:
+        # ---------- Routes publiques ----------
+        if path == "auth/login" and method == "POST":
+            email, password = body.get("email"), body.get("password")
+            # Client dédié pour ne pas partager de session entre requêtes
+            client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+            try:
+                res = client.auth.sign_in_with_password({"email": email, "password": password})
+            except Exception as e:
+                return json_response(400, {"error": str(e)})
+            profile = get_profile(res.user.id)
+            return json_response(200, {
+                "token": res.session.access_token,
+                "user": user_to_dict(res.user),
+                "profile": profile,
+            })
 
-      const { data: { publicUrl } } = supabaseAdmin.storage.from('revision_files').getPublicUrl(storagePath);
+        if path == "posts" and method == "GET":
+            res = db.table("posts").select("*").order("created_at", desc=True).execute()
+            return json_response(200, res.data)
 
-      const { error: dbError } = await supabaseAdmin.from('revision_sheets').insert([{
-        title, subject, file_url: publicUrl, file_name: fileName, created_by: user.id, status: 'pending', rejection_reason: null
-      }]);
-      if (dbError) return json(500, { error: dbError.message });
+        if path == "sheets/approved" and method == "GET":
+            res = (db.table("revision_sheets").select("*").eq("status", "approved")
+                   .order("created_at", desc=True).execute())
+            return json_response(200, res.data)
 
-      return json(200, { message: "Fiche envoyée en modération." });
-    }
+        # ---------- Routes authentifiées ----------
+        auth = get_auth_context()
+        if not auth:
+            return json_response(401, {"error": "Non autorisé. Veuillez vous connecter."})
 
-    if (path === 'intake/my' && method === 'GET') {
-      const { data, error } = await supabaseAdmin.from('delegate_intake_responses').select('*').eq('student_id', user.id);
-      if (error) return json(500, { error: error.message });
-      return json(200, data && data.length > 0 ? data[0] : null);
-    }
+        user, profile = auth["user"], auth["profile"]
+        role = (profile or {}).get("role")
+        is_admin = role in ("admin", "webmaster")
+        is_webmaster = role == "webmaster"
 
-    if (path === 'intake/submit' && method === 'POST') {
-      const { info, has_whatsapp, whatsapp_handle, has_snapchat, snapchat_handle, has_instagram, instagram_handle } = body;
-      const { error } = await supabaseAdmin.from('delegate_intake_responses').upsert({
-        student_id: user.id,
-        info,
-        has_whatsapp,
-        whatsapp_handle,
-        has_snapchat,
-        snapchat_handle,
-        has_instagram,
-        instagram_handle
-      }, { onConflict: 'student_id' });
+        if path == "auth/me" and method == "GET":
+            return json_response(200, {"user": user_to_dict(user), "profile": profile})
 
-      if (error) return json(500, { error: error.message });
-      return json(200, { message: "Réponses enregistrées avec succès." });
-    }
+        if path == "auth/change-password" and method == "POST":
+            try:
+                db.auth.admin.update_user_by_id(user.id, {"password": body.get("new_password")})
+            except Exception as e:
+                return json_response(400, {"error": str(e)})
+            return json_response(200, {"message": "Mot de passe mis à jour."})
 
-    // --- NOUVELLES ROUTES : Mouvement Lycéen ---
-    if (path === 'mouvement/my' && method === 'GET') {
-      const { data, error } = await supabaseAdmin.from('mouvement_lyceen_responses').select('*').eq('student_id', user.id);
-      if (error) return json(500, { error: error.message });
-      return json(200, data && data.length > 0 ? data[0] : null);
-    }
+        if path == "results/my" and method == "GET":
+            res = (db.table("student_results").select("*").eq("student_id", user.id)
+                   .order("updated_at", desc=True).execute())
+            return json_response(200, res.data)
 
-    if (path === 'mouvement/submit' && method === 'POST') {
-      const { difficulties, improvements } = body;
-      const { error } = await supabaseAdmin.from('mouvement_lyceen_responses').upsert({
-        student_id: user.id,
-        difficulties,
-        improvements
-      }, { onConflict: 'student_id' });
+        if path == "sheets/my" and method == "GET":
+            res = (db.table("revision_sheets").select("*").eq("created_by", user.id)
+                   .order("created_at", desc=True).execute())
+            return json_response(200, res.data)
 
-      if (error) return json(500, { error: error.message });
-      return json(200, { message: "Réponses sur le mouvement lycéen enregistrées avec succès." });
-    }
+        if path == "sheets/upload" and method == "POST":
+            title, subject = body.get("title"), body.get("subject")
+            file_name, file_base64 = body.get("fileName", ""), body.get("fileBase64", "")
 
-    if (isAdmin) {
-      if (path === 'posts/create' && method === 'POST') {
-        const { error } = await supabaseAdmin.from('posts').insert([{ title: body.title, content: body.content }]);
-        if (error) return json(500, { error: error.message });
-        return json(200, { message: "Annonce publiée." });
-      }
+            match = re.match(r"^data:(.*?);base64,", file_base64)
+            content_type = match.group(1) if match else (
+                mimetypes.guess_type(file_name)[0] or "application/octet-stream"
+            )
+            raw = re.sub(r"^data:.*;base64,", "", file_base64)
+            buffer = base64.b64decode(raw)
 
-      if (path === 'posts/update' && method === 'POST') {
-        const { id, title, content } = body;
-        const { error } = await supabaseAdmin.from('posts').update({ title, content }).eq('id', id);
-        if (error) return json(500, { error: error.message });
-        return json(200, { message: "Annonce mise à jour." });
-      }
+            file_ext = file_name.rsplit(".", 1)[-1] if "." in file_name else "bin"
+            storage_path = f"{user.id}/{int(time.time() * 1000)}.{file_ext}"
 
-      if (path === 'posts/delete' && method === 'POST') {
-        const { id } = body;
-        const { error } = await supabaseAdmin.from('posts').delete().eq('id', id);
-        if (error) return json(500, { error: error.message });
-        return json(200, { message: "Annonce supprimée." });
-      }
+            try:
+                db.storage.from_("revision_files").upload(
+                    storage_path, buffer, {"content-type": content_type}
+                )
+            except Exception as e:
+                return json_response(500, {"error": str(e)})
 
-      if (path === 'sheets/pending' && method === 'GET') {
-        const { data, error } = await supabaseAdmin.from('revision_sheets').select('*').eq('status', 'pending').order('created_at', { ascending: false });
-        if (error) return json(500, { error: error.message });
-        return json(200, data);
-      }
+            public_url = db.storage.from_("revision_files").get_public_url(storage_path)
 
-      if (path === 'sheets/approve' && method === 'POST') {
-        const { error } = await supabaseAdmin.from('revision_sheets').update({ status: 'approved', rejection_reason: null }).eq('id', body.sheetId);
-        if (error) return json(500, { error: error.message });
-        return json(200, { message: "Fiche approuvée." });
-      }
+            db.table("revision_sheets").insert({
+                "title": title,
+                "subject": subject,
+                "file_url": public_url,
+                "file_name": file_name,
+                "created_by": user.id,
+                "status": "pending",
+                "rejection_reason": None,
+            }).execute()
+            return json_response(200, {"message": "Fiche envoyée en modération."})
 
-      if (path === 'sheets/reject' && method === 'POST') {
-        const { sheetId, reason } = body;
-        const { error } = await supabaseAdmin.from('revision_sheets').update({ 
-          status: 'rejected', 
-          rejection_reason: reason || 'Aucune raison spécifiée.' 
-        }).eq('id', sheetId);
-        if (error) return json(500, { error: error.message });
-        return json(200, { message: "Fiche refusée avec motif." });
-      }
+        if path == "intake/my" and method == "GET":
+            res = db.table("delegate_intake_responses").select("*").eq("student_id", user.id).execute()
+            return json_response(200, res.data[0] if res.data else None)
 
-      if (path === 'sheets/delete' && method === 'POST') {
-        const { error } = await supabaseAdmin.from('revision_sheets').delete().eq('id', body.sheetId);
-        if (error) return json(500, { error: error.message });
-        return json(200, { message: "Fiche supprimée." });
-      }
+        if path == "intake/submit" and method == "POST":
+            keys = ["info", "has_whatsapp", "whatsapp_handle", "has_snapchat",
+                    "snapchat_handle", "has_instagram", "instagram_handle"]
+            row = {"student_id": user.id, **{k: body.get(k) for k in keys}}
+            db.table("delegate_intake_responses").upsert(row, on_conflict="student_id").execute()
+            return json_response(200, {"message": "Réponses enregistrées avec succès."})
 
-      if (path === 'admin/students' && method === 'GET') {
-        const { data, error } = await supabaseAdmin.from('profiles').select('id, email, full_name, role').neq('role', 'webmaster');
-        if (error) return json(500, { error: error.message });
-        return json(200, data);
-      }
+        # --- Mouvement Lycéen ---
+        if path == "mouvement/my" and method == "GET":
+            res = db.table("mouvement_lyceen_responses").select("*").eq("student_id", user.id).execute()
+            return json_response(200, res.data[0] if res.data else None)
 
-      if (path === 'admin/student-results' && method === 'POST') {
-        const { data, error } = await supabaseAdmin.from('student_results').select('*').eq('student_id', body.studentId).order('updated_at', { ascending: false });
-        if (error) return json(500, { error: error.message });
-        return json(200, data);
-      }
+        if path == "mouvement/submit" and method == "POST":
+            db.table("mouvement_lyceen_responses").upsert({
+                "student_id": user.id,
+                "difficulties": body.get("difficulties"),
+                "improvements": body.get("improvements"),
+            }, on_conflict="student_id").execute()
+            return json_response(200, {
+                "message": "Réponses sur le mouvement lycéen enregistrées avec succès."
+            })
 
-      if (path === 'admin/add-result' && method === 'POST') {
-        const { error } = await supabaseAdmin.from('student_results').insert([{ 
-          student_id: body.studentId, 
-          title: body.title || 'Conseil de classe', 
-          appreciation: body.appreciation 
-        }]);
-        if (error) return json(500, { error: error.message });
-        return json(200, { message: "Résultat ajouté." });
-      }
+        # ---------- Routes admin ----------
+        if is_admin:
+            if path == "posts/create" and method == "POST":
+                db.table("posts").insert({"title": body.get("title"), "content": body.get("content")}).execute()
+                return json_response(200, {"message": "Annonce publiée."})
 
-      if (path === 'intake/responses' && method === 'GET') {
-        const { data: responses, error: respError } = await supabaseAdmin.from('delegate_intake_responses').select('*').order('created_at', { ascending: false });
-        if (respError) return json(500, { error: respError.message });
+            if path == "posts/update" and method == "POST":
+                db.table("posts").update({"title": body.get("title"), "content": body.get("content")}) \
+                    .eq("id", body.get("id")).execute()
+                return json_response(200, {"message": "Annonce mise à jour."})
 
-        const { data: profiles, error: profError } = await supabaseAdmin.from('profiles').select('id, full_name, email');
-        if (profError) return json(500, { error: profError.message });
+            if path == "posts/delete" and method == "POST":
+                db.table("posts").delete().eq("id", body.get("id")).execute()
+                return json_response(200, {"message": "Annonce supprimée."})
 
-        const profileMap = {};
-        (profiles || []).forEach(p => { profileMap[p.id] = p; });
+            if path == "sheets/pending" and method == "GET":
+                res = (db.table("revision_sheets").select("*").eq("status", "pending")
+                       .order("created_at", desc=True).execute())
+                return json_response(200, res.data)
 
-        const combined = (responses || []).map(r => ({
-          ...r,
-          profiles: profileMap[r.student_id] || { full_name: 'Élève inconnu', email: '' }
-        }));
+            if path == "sheets/approve" and method == "POST":
+                db.table("revision_sheets").update({"status": "approved", "rejection_reason": None}) \
+                    .eq("id", body.get("sheetId")).execute()
+                return json_response(200, {"message": "Fiche approuvée."})
 
-        return json(200, combined);
-      }
+            if path == "sheets/reject" and method == "POST":
+                db.table("revision_sheets").update({
+                    "status": "rejected",
+                    "rejection_reason": body.get("reason") or "Aucune raison spécifiée.",
+                }).eq("id", body.get("sheetId")).execute()
+                return json_response(200, {"message": "Fiche refusée avec motif."})
 
-      // --- NOUVELLE ROUTE ADMIN : Résultats Mouvement Lycéen ---
-      if (path === 'mouvement/responses' && method === 'GET') {
-        const { data: responses, error: respError } = await supabaseAdmin.from('mouvement_lyceen_responses').select('*').order('created_at', { ascending: false });
-        if (respError) return json(500, { error: respError.message });
+            if path == "sheets/delete" and method == "POST":
+                db.table("revision_sheets").delete().eq("id", body.get("sheetId")).execute()
+                return json_response(200, {"message": "Fiche supprimée."})
 
-        const { data: profiles, error: profError } = await supabaseAdmin.from('profiles').select('id, full_name, email');
-        if (profError) return json(500, { error: profError.message });
+            if path == "admin/students" and method == "GET":
+                res = db.table("profiles").select("id, email, full_name, role").neq("role", "webmaster").execute()
+                return json_response(200, res.data)
 
-        const profileMap = {};
-        (profiles || []).forEach(p => { profileMap[p.id] = p; });
+            if path == "admin/student-results" and method == "POST":
+                res = (db.table("student_results").select("*").eq("student_id", body.get("studentId"))
+                       .order("updated_at", desc=True).execute())
+                return json_response(200, res.data)
 
-        const combined = (responses || []).map(r => ({
-          ...r,
-          profiles: profileMap[r.student_id] || { full_name: 'Élève inconnu', email: '' }
-        }));
+            if path == "admin/add-result" and method == "POST":
+                db.table("student_results").insert({
+                    "student_id": body.get("studentId"),
+                    "title": body.get("title") or "Conseil de classe",
+                    "appreciation": body.get("appreciation"),
+                }).execute()
+                return json_response(200, {"message": "Résultat ajouté."})
 
-        return json(200, combined);
-      }
-    }
+            if path == "intake/responses" and method == "GET":
+                res = db.table("delegate_intake_responses").select("*").order("created_at", desc=True).execute()
+                return json_response(200, combine_with_profiles(res.data))
 
-    if (isWebmaster) {
-      if (path === 'webmaster/create-user' && method === 'POST') {
-        const { email, password, name, role } = body;
-        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-          email, password, email_confirm: true, user_metadata: { full_name: name }
-        });
-        if (createError) return json(400, { error: createError.message });
+            if path == "mouvement/responses" and method == "GET":
+                res = db.table("mouvement_lyceen_responses").select("*").order("created_at", desc=True).execute()
+                return json_response(200, combine_with_profiles(res.data))
 
-        await supabaseAdmin.from('profiles').update({ role }).eq('id', newUser.user.id);
-        return json(200, { message: "Utilisateur créé avec succès." });
-      }
+        # ---------- Routes webmaster ----------
+        if is_webmaster:
+            if path == "webmaster/create-user" and method == "POST":
+                try:
+                    new_user = db.auth.admin.create_user({
+                        "email": body.get("email"),
+                        "password": body.get("password"),
+                        "email_confirm": True,
+                        "user_metadata": {"full_name": body.get("name")},
+                    })
+                except Exception as e:
+                    return json_response(400, {"error": str(e)})
+                db.table("profiles").update({"role": body.get("role")}).eq("id", new_user.user.id).execute()
+                return json_response(200, {"message": "Utilisateur créé avec succès."})
 
-      if (path === 'webmaster/profiles' && method === 'GET') {
-        const { data, error } = await supabaseAdmin.from('profiles').select('*').order('email');
-        if (error) return json(500, { error: error.message });
-        return json(200, data);
-      }
+            if path == "webmaster/profiles" and method == "GET":
+                res = db.table("profiles").select("*").order("email").execute()
+                return json_response(200, res.data)
 
-      if (path === 'webmaster/update-profile' && method === 'POST') {
-        const { userId, name, role } = body;
-        const { error } = await supabaseAdmin.from('profiles').update({ full_name: name, role }).eq('id', userId);
-        if (error) return json(500, { error: error.message });
-        return json(200, { message: "Profil mis à jour." });
-      }
+            if path == "webmaster/update-profile" and method == "POST":
+                db.table("profiles").update({"full_name": body.get("name"), "role": body.get("role")}) \
+                    .eq("id", body.get("userId")).execute()
+                return json_response(200, {"message": "Profil mis à jour."})
 
-      if (path === 'webmaster/reset-password' && method === 'POST') {
-        const { userId, newPassword } = body;
-        const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password: newPassword });
-        if (error) return json(500, { error: error.message });
-        return json(200, { message: "Mot de passe réinitialisé." });
-      }
-    }
+            if path == "webmaster/reset-password" and method == "POST":
+                db.auth.admin.update_user_by_id(body.get("userId"), {"password": body.get("newPassword")})
+                return json_response(200, {"message": "Mot de passe réinitialisé."})
 
-    return json(404, { error: "Route non trouvée ou privilèges insuffisants." });
+        return json_response(404, {"error": "Route non trouvée ou privilèges insuffisants."})
 
-  } catch (err) {
-    return json(500, { error: err.message });
-  }
-};
+    except Exception as e:
+        return json_response(500, {"error": str(e)})
