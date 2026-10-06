@@ -102,6 +102,7 @@
   <header>
     <div class="brand" onclick="showSection('home-section')">🎓 Classe de 1G_H</div>
     <div class="nav-buttons">
+      <button id="nav-forms-btn" class="btn btn-outline hidden" onclick="window.location.href='forms.html'">📊 Résultats Formulaires</button>
       <button id="nav-space-btn" class="btn btn-primary" onclick="showSection('space-section')">🔒 Mon Espace / Connexion</button>
     </div>
   </header>
@@ -136,6 +137,9 @@
             <div class="card-header"><h2 class="card-title">📝 Liens Utiles</h2></div>
             <div class="sheet-item" onclick="openIntakeForm()">
               <span>📋 Formulaire Délégués</span> ➔
+            </div>
+            <div class="sheet-item" onclick="openMouvementForm()">
+              <span>✊ Consultation Mouvement Lycéen</span> ➔
             </div>
           </div>
         </div>
@@ -188,6 +192,33 @@
         </div>
       </div>
     </div>
+    
+    <!-- FORMULAIRE MOUVEMENT LYCÉEN -->
+    <div id="mouvement-section" class="hidden">
+      <div class="card" style="max-width: 700px; margin: 0 auto;">
+        <div class="card-header">
+          <h2 class="card-title">✊ Consultation sur le mouvement lycéen</h2>
+          <button class="btn btn-outline" onclick="showSection('home-section')">⬅ Retour</button>
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+          Donnez votre avis sur le climat et les conditions de vie au lycée. Vos réponses enregistrent votre nom et sont consultables par l'équipe dirigeante/délégués.
+        </p>
+
+        <div id="mouvement-not-logged" class="hidden" style="background: #fef2f2; border: 1px solid #f87171; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; color: #991b1b;">
+          ⚠️ Vous devez être <strong>connecté</strong> pour répondre à ce formulaire. <a href="#" onclick="showSection('space-section')" style="color:#2563eb; font-weight:bold;">Se connecter</a>
+        </div>
+
+        <div id="mouvement-form-container">
+          <label><strong>1. Quelles sont aujourd’hui les principales difficultés que vous rencontrez dans votre lycée ?</strong></label>
+          <textarea id="mouv-difficulties" rows="4" placeholder="Exprimez vos difficultés..."></textarea>
+
+          <label style="margin-top: 1rem; display:block;"><strong>2. Qu’est-ce qui devrait, selon vous, changer ou être amélioré pour mieux apprendre et mieux vivre votre scolarité ?</strong></label>
+          <textarea id="mouv-improvements" rows="4" placeholder="Vos propositions d'amélioration..."></textarea>
+
+          <button id="mouv-submit-btn" class="btn btn-primary" style="margin-top: 1.5rem; width:100%;" onclick="submitMouvementForm()">Envoyer ma contribution</button>
+        </div>
+      </div>
+    </div>
 
     <!-- MENTIONS LÉGALES -->
     <div id="legal-section" class="hidden">
@@ -198,9 +229,9 @@
         </div>
         <div style="color: var(--text); line-height: 1.8; font-size: 0.95rem;">
           <h3 style="margin-top: 1.2rem; color: var(--primary);">1. Éditeur du site</h3>
-          <p>Le présent site web est édité par : Alexandre Codron-Blervaque. Adresse : 1 rue Chateaubriand, 59155, Faches-Thumesnil. Tél : 06 95 01 26 63. Directeur de publication : Ewann Jacquelin</p>
+          <p>Le présent site web est édité par Classe de 1G_H. Adresse : 1 rue Chateaubriand, 59155, Faches-Thumesnil. Tél : 06 95 01 26 63. Directeur de la publication : Alexandre Codron-Blervaqe.</p>
           <h3 style="margin-top: 1.5rem; color: var(--primary);">2. Hébergeur</h3>
-          <p>GitHub, Inc. 88 Colin P. Kelly Jr. St. San Francisco, CA 94107 États-Unis. Contact : dpo@github.com.</p>
+          <p>Netlify — 44 Montgomery Street, Suite 300, San Francisco, CA 94104, USA.</p>
           <h3 style="margin-top: 1.5rem; color: var(--primary);">3. Confidentialité & RGPD</h3>
           <p>Les données collectées via ce site sont strictement réservées à l'usage interne de la classe (fiches, résultats du conseil, formulaire des délégués) et stockées de manière sécurisée sur Supabase.</p>
         </div>
@@ -396,6 +427,7 @@
       document.getElementById('home-section').classList.add('hidden');
       document.getElementById('space-section').classList.add('hidden');
       document.getElementById('intake-section').classList.add('hidden');
+      document.getElementById('mouvement-section').classList.add('hidden');
       document.getElementById('legal-section').classList.add('hidden');
       document.getElementById(sectionId).classList.remove('hidden');
 
@@ -411,10 +443,25 @@
           loadMyIntakeResponse();
         }
       }
+
+      if (sectionId === 'mouvement-section') {
+        if (!authToken) {
+          document.getElementById('mouvement-not-logged').classList.remove('hidden');
+          document.getElementById('mouvement-form-container').classList.add('hidden');
+        } else {
+          document.getElementById('mouvement-not-logged').classList.add('hidden');
+          document.getElementById('mouvement-form-container').classList.remove('hidden');
+          loadMyMouvementResponse();
+        }
+      }
     }
 
     function openIntakeForm() {
       showSection('intake-section');
+    }
+
+    function openMouvementForm() {
+      showSection('mouvement-section');
     }
 
     async function loadMyIntakeResponse() {
@@ -452,6 +499,21 @@
       } catch (e) {}
     }
 
+    async function loadMyMouvementResponse() {
+      try {
+        const data = await apiFetch('mouvement/my');
+        if (data) {
+          document.getElementById('mouv-difficulties').value = data.difficulties || '';
+          document.getElementById('mouv-improvements').value = data.improvements || '';
+          document.getElementById('mouv-submit-btn').innerText = "Modifier ma contribution";
+        } else {
+          document.getElementById('mouv-difficulties').value = '';
+          document.getElementById('mouv-improvements').value = '';
+          document.getElementById('mouv-submit-btn').innerText = "Envoyer ma contribution";
+        }
+      } catch (e) {}
+    }
+
     function toggleNetworkInput(net) {
       const checked = document.getElementById(`check-${net}`).checked;
       const input = document.getElementById(`input-${net}`);
@@ -477,6 +539,19 @@
           info, has_whatsapp, whatsapp_handle, has_snapchat, snapchat_handle, has_instagram, instagram_handle
         });
         alert('Vos réponses ont bien été enregistrées / mises à jour !');
+        showSection('home-section');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function submitMouvementForm() {
+      const difficulties = document.getElementById('mouv-difficulties').value;
+      const improvements = document.getElementById('mouv-improvements').value;
+
+      try {
+        await apiFetch('mouvement/submit', 'POST', { difficulties, improvements });
+        alert('Votre contribution sur le mouvement lycéen a bien été enregistrée !');
         showSection('home-section');
       } catch (err) {
         alert(err.message);
@@ -527,6 +602,7 @@
             if (role === 'webmaster' || role === 'admin') {
               badge.innerText = role === 'webmaster' ? 'Webmaster' : 'Délégué / Prof';
               document.getElementById('admin-panel').classList.remove('hidden');
+              document.getElementById('nav-forms-btn').classList.remove('hidden');
               if (role === 'webmaster') {
                 document.getElementById('webmaster-panel').classList.remove('hidden');
                 loadWebmasterProfiles();
@@ -654,7 +730,6 @@
       if (!title || !fileInput.files.length) return alert('Sélectionnez un fichier et un titre.');
 
       const file = fileInput.files[0];
-      if (file.size > 3 * 1024 * 1024) return alert('Fichier trop volumineux (3 Mo maximum).');
       const reader = new FileReader();
       reader.onload = async () => {
         try {
@@ -704,7 +779,7 @@
 
     async function promptRejectSheet(sheetId) {
       const reason = prompt("Veuillez indiquer la raison du refus (ex: contenu erroné, illisible, doublon...) :");
-      if (reason === null) return; // Annulé par l'admin
+      if (reason === null) return;
       try {
         await apiFetch('sheets/reject', 'POST', { sheetId, reason });
         alert('Fiche refusée avec motif.');
