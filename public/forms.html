@@ -94,10 +94,17 @@
         const container = document.getElementById('delegate-results');
         container.innerHTML = responses.map(r => `
           <div class="response-row">
-            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.3rem;">
               <strong>👤 ${r.profiles?.full_name || r.profiles?.email || 'Élève'}</strong>
-              <small style="color:var(--text-muted);">${new Date(r.created_at).toLocaleDateString()}</small>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">${new Date(r.created_at).toLocaleDateString()}</span>
             </div>
+            <p style="margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text); background: #f8fafc; padding: 0.4rem 0.6rem; border-radius: 6px;">${r.info || 'Aucune information textuelle fournie.'}</p>
+            <div style="font-size: 0.8rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+              ${r.has_whatsapp ? `<span>🟢 <strong>WA:</strong> ${r.whatsapp_handle}</span>` : ''}
+              ${r.has_snapchat ? `<span>🟡 <strong>Snap:</strong> ${r.snapchat_handle}</span>` : ''}
+              ${r.has_instagram ? `<span>🟣 <strong>Insta:</strong> ${r.instagram_handle}</span>` : ''}
+            </div>
+          </div>
             <p><strong>Info :</strong> ${r.info || 'Aucune'}</p>
           </div>
         `).join('') || '<p style="color:var(--text-muted);">Aucune réponse.</p>';
