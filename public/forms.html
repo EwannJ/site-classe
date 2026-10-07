@@ -105,8 +105,6 @@
               ${r.has_instagram ? `<span>🟣 <strong>Insta:</strong> ${r.instagram_handle}</span>` : ''}
             </div>
           </div>
-            <p><strong>Info :</strong> ${r.info || 'Aucune'}</p>
-          </div>
         `).join('') || '<p style="color:var(--text-muted);">Aucune réponse.</p>';
       } catch (e) {
         document.getElementById('delegate-results').innerHTML = '<p style="color:red;">Erreur de chargement.</p>';
