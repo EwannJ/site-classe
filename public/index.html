@@ -138,9 +138,6 @@
             <div class="sheet-item" onclick="openIntakeForm()">
               <span>📋 Formulaire Délégués</span> ➔
             </div>
-            <div class="sheet-item" onclick="openMouvementForm()">
-              <span>✊ Consultation Mouvement Lycéen</span> ➔
-            </div>
           </div>
         </div>
       </div>
@@ -189,33 +186,6 @@
           </div>
 
           <button id="intake-submit-btn" class="btn btn-primary" style="margin-top: 1.5rem; width:100%;" onclick="submitIntakeForm()">Envoyer aux délégués</button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- FORMULAIRE MOUVEMENT LYCÉEN -->
-    <div id="mouvement-section" class="hidden">
-      <div class="card" style="max-width: 700px; margin: 0 auto;">
-        <div class="card-header">
-          <h2 class="card-title">✊ Consultation sur le mouvement lycéen</h2>
-          <button class="btn btn-outline" onclick="showSection('home-section')">⬅ Retour</button>
-        </div>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
-          Donnez votre avis sur le climat et les conditions de vie au lycée. Vos réponses enregistrent votre nom et sont consultables par l'équipe dirigeante/délégués.
-        </p>
-
-        <div id="mouvement-not-logged" class="hidden" style="background: #fef2f2; border: 1px solid #f87171; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; color: #991b1b;">
-          ⚠️ Vous devez être <strong>connecté</strong> pour répondre à ce formulaire. <a href="#" onclick="showSection('space-section')" style="color:#2563eb; font-weight:bold;">Se connecter</a>
-        </div>
-
-        <div id="mouvement-form-container">
-          <label><strong>1. Quelles sont aujourd’hui les principales difficultés que vous rencontrez dans votre lycée ?</strong></label>
-          <textarea id="mouv-difficulties" rows="4" placeholder="Exprimez vos difficultés..."></textarea>
-
-          <label style="margin-top: 1rem; display:block;"><strong>2. Qu’est-ce qui devrait, selon vous, changer ou être amélioré pour mieux apprendre et mieux vivre votre scolarité ?</strong></label>
-          <textarea id="mouv-improvements" rows="4" placeholder="Vos propositions d'amélioration..."></textarea>
-
-          <button id="mouv-submit-btn" class="btn btn-primary" style="margin-top: 1.5rem; width:100%;" onclick="submitMouvementForm()">Envoyer ma contribution</button>
         </div>
       </div>
     </div>
@@ -427,7 +397,6 @@
       document.getElementById('home-section').classList.add('hidden');
       document.getElementById('space-section').classList.add('hidden');
       document.getElementById('intake-section').classList.add('hidden');
-      document.getElementById('mouvement-section').classList.add('hidden');
       document.getElementById('legal-section').classList.add('hidden');
       document.getElementById(sectionId).classList.remove('hidden');
 
@@ -443,25 +412,10 @@
           loadMyIntakeResponse();
         }
       }
-
-      if (sectionId === 'mouvement-section') {
-        if (!authToken) {
-          document.getElementById('mouvement-not-logged').classList.remove('hidden');
-          document.getElementById('mouvement-form-container').classList.add('hidden');
-        } else {
-          document.getElementById('mouvement-not-logged').classList.add('hidden');
-          document.getElementById('mouvement-form-container').classList.remove('hidden');
-          loadMyMouvementResponse();
-        }
-      }
     }
 
     function openIntakeForm() {
       showSection('intake-section');
-    }
-
-    function openMouvementForm() {
-      showSection('mouvement-section');
     }
 
     async function loadMyIntakeResponse() {
@@ -499,21 +453,6 @@
       } catch (e) {}
     }
 
-    async function loadMyMouvementResponse() {
-      try {
-        const data = await apiFetch('mouvement/my');
-        if (data) {
-          document.getElementById('mouv-difficulties').value = data.difficulties || '';
-          document.getElementById('mouv-improvements').value = data.improvements || '';
-          document.getElementById('mouv-submit-btn').innerText = "Modifier ma contribution";
-        } else {
-          document.getElementById('mouv-difficulties').value = '';
-          document.getElementById('mouv-improvements').value = '';
-          document.getElementById('mouv-submit-btn').innerText = "Envoyer ma contribution";
-        }
-      } catch (e) {}
-    }
-
     function toggleNetworkInput(net) {
       const checked = document.getElementById(`check-${net}`).checked;
       const input = document.getElementById(`input-${net}`);
@@ -545,18 +484,6 @@
       }
     }
 
-    async function submitMouvementForm() {
-      const difficulties = document.getElementById('mouv-difficulties').value;
-      const improvements = document.getElementById('mouv-improvements').value;
-
-      try {
-        await apiFetch('mouvement/submit', 'POST', { difficulties, improvements });
-        alert('Votre contribution sur le mouvement lycéen a bien été enregistrée !');
-        showSection('home-section');
-      } catch (err) {
-        alert(err.message);
-      }
-    }
 
     async function login() {
       const email = document.getElementById('email').value;
