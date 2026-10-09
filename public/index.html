@@ -38,7 +38,11 @@
       display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1.2rem;
       font-size: 0.9rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; text-decoration: none;
     }
-    .btn-primary { background: var(--primary); color: white; }
+    .btn-home {
+    background: white;
+    border: rgba(0, 0, 0, 0.267) 1px solid
+    }    
+    .btn-primary { background: var(--primary); color: white; border: 1px solid rgba(0, 0, 0, 0.267) }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
     .btn-outline:hover { background: #f1f5f9; }
@@ -102,6 +106,7 @@
   <header>
     <div class="brand" onclick="showSection('home-section')">🎓 Classe de 1G_H</div>
     <div class="nav-buttons">
+      <button id="nav-forms-btn" class="btn btn-home" onclick="window.location.href='forms.html'">🏠 Accueil</button>
       <button id="nav-forms-btn" class="btn btn-outline hidden" onclick="window.location.href='forms.html'">📊 Résultats Formulaires</button>
       <button id="nav-space-btn" class="btn btn-primary" onclick="showSection('space-section')">🔒 Mon Espace / Connexion</button>
     </div>
@@ -201,7 +206,7 @@
           <h3 style="margin-top: 1.2rem; color: var(--primary);">1. Éditeur du site</h3>
           <p>Le présent site web est édité par Ewann Jacquelin et Alexandre Codron-Blervaque. Adresse : 1 rue Chateaubriand, 59155, Faches-Thumesnil. Tél : 06 95 01 26 63. Directeur de la publication : Alexandre Codron-Blervaque.</p>
           <h3 style="margin-top: 1.5rem; color: var(--primary);">2. Hébergeur</h3>
-          <p>GitHub Inc. — 88 Colin P. Kelly Jr. St, San Francisco, CA 94107, USA.</p>
+          <p>Vercel Inc. • 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis</p>
           <h3 style="margin-top: 1.5rem; color: var(--primary);">3. Confidentialité & RGPD</h3>
           <p>Les données collectées via ce site sont strictement réservées à l'usage interne de la classe (fiches, résultats du conseil, formulaire des délégués) et stockées de manière sécurisée sur Supabase.</p>
         </div>
