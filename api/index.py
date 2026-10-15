@@ -188,6 +188,33 @@ def handler(_):
             return json_response(200, {
                 "message": "Réponses sur le mouvement lycéen enregistrées avec succès."
             })
+        # --- Commission Restauration ---
+        if path == "cantine/my" and method == "GET":
+            res = db.table("cantine_responses").select("*").eq("student_id", user.id).execute()
+            return json_response(200, res.data[0] if res.data else None)
+
+        if path == "cantine/submit" and method == "POST":
+            db.table("cantine_responses").upsert({
+                "student_id": user.id,
+                "q_quality": body.get("q_quality"),
+                "q_quantity": body.get("q_quantity"),
+                "q_variety": body.get("q_variety"),
+                "q_temperature": body.get("q_temperature"),
+                "q_ambiance": body.get("q_ambiance"),
+                "q_waiting_time": body.get("q_waiting_time"),
+                "q_hygiene": body.get("q_hygiene"),
+                "q_waste": body.get("q_waste"),
+                "q_price": body.get("q_price"),
+                "q_suggestions": body.get("q_suggestions")
+            }, on_conflict="student_id").execute()
+            return json_response(200, {
+                "message": "Réponses pour la commission restauration enregistrées."
+            })
+
+        # --- Admin : Récupération des retours cantine avec noms ---
+        if is_admin and path == "cantine/responses" and method == "GET":
+            res = db.table("cantine_responses").select("*").order("created_at", desc=True).execute()
+            return json_response(200, combine_with_profiles(res.data))
 
         # ---------- Routes admin ----------
         if is_admin:
@@ -282,3 +309,4 @@ def handler(_):
 
     except Exception as e:
         return json_response(500, {"error": str(e)})
+

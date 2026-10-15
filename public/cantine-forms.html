@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sondage Commission Restauration - Classe 1G_H</title>
+  <link rel="icon" href="icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); padding: 2rem 1rem; line-height: 1.6; }
+    .container { max-width: 750px; margin: 0 auto; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.8rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem; }
+    .btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+    select, textarea, input[type="text"] { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.95rem; background: #f8fafc; }
+    .hidden { display: none !important; }
+    .info-box { background: #eff6ff; border-left: 4px solid var(--primary); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; color: #1e40af; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2>🍽️ Sondage Commission Restauration</h2>
+        <a href="index.html" class="btn btn-outline">⬅ Retour</a>
+      </div>
+
+      <div class="info-box">
+        📅 <strong>Commission du 10 novembre</strong><br>
+        Ce sondage est strictement réservé aux élèves de la classe. Vos réponses sont enregistrées avec votre nom et votre compte pour permettre aux délégués de compiler les résultats.
+      </div>
+
+      <div id="not-logged" class="hidden" style="background: #fef2f2; border: 1px solid #f87171; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; color: #991b1b; text-align: center;">
+        <h3 style="margin-bottom: 0.5rem;">⛔ Connexion requise</h3>
+        <p style="margin-bottom: 1rem;">Vous devez être <strong>connecté</strong> à votre compte pour répondre à ce sondage.</p>
+        <a href="index.html" class="btn btn-primary">Se connecter sur le site</a>
+      </div>
+
+      <form id="cantine-form">
+        <div class="form-group">
+          <label>1. Es-tu satisfait de la qualité et du goût des repas ?</label>
+          <select id="q_quality" required>
+            <option value="">-- Sélectionner une réponse --</option>
+            <option value="Pas satisfait">Pas satisfait</option>
+            <option value="Peu satisfait">Peu satisfait</option>
+            <option value="Satisfait">Satisfait</option>
+            <option value="Très satisfait">Très satisfait</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>2. Es-tu satisfait de la quantité servie dans ton assiette ?</label>
+          <select id="q_quantity" required>
+            <option value="">-- Sélectionner une réponse --</option>
+            <option value="Pas satisfait">Pas satisfait</option>
+            <option value="Peu satisfait">Peu satisfait</option>
+            <option value="Satisfait">Satisfait</option>
+            <option value="Très satisfait">Très satisfait</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>3. Comment évalues-tu la variété des menus et les choix proposés ?</label>
+          <select id="q_variety" required>
+            <option value="">-- Sélectionner une réponse --</option>
+            <option value="Insuffisante">Insuffisante</option>
+            <option value="Moyenne">Moyenne</option>
+            <option value="Bonne">Bonne</option>
+            <option value="Très bonne">Très bonne</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>4. Les repas sont-ils servis à la bonne température ?</label>
+          <select id="q_temperature" required>
+            <option value="">-- Sélectionner une réponse --</option>
+            <option value="Rarement">Rarement</option>
+            <option value="Parfois">Parfois</option>
+            <option value="Souvent">Souvent</option>
+            <option value="Toujours">Toujours</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>5. Comment trouves-tu l'accueil et l'ambiance au self ?</label>
+          <select id="q_ambiance" required>
+            <option value="">-- Sélectionner une réponse --</option>
+            <option value="A réviser complètement">A réviser complètement</option>
+            <option value="Moyen">Moyen</option>
+            <option value="Agréable">Agréable</option>
+            <option value="Très agréable">Très agréable</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>6. Le temps d'attente pour accéder au service te paraît-il raisonnable ?</label>
+          <select id="q_waiting_time" required>
+            <option value="">-- Sélectionner une réponse --</option>
+            <option value="Trop long">Trop long</option>
+            <option value="Acceptable">Acceptable</option>
+            <option value="Fluide">Fluide</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>7. Es-tu satisfait du niveau d'hygiène et de propreté des locaux/plateaux ?</label>
+          <select id="q_hygiene" required>
+            <option value="">-- Sélectionner une réponse --</option>
+            <option value="Pas satisfait">Pas satisfait</option>
+            <option value="Peu satisfait">Peu satisfait</option>
+            <option value="Satisfait">Satisfait</option>
+            <option value="Très satisfait">Très satisfait</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>8. Penses-tu que des efforts suffisants sont faits contre le gaspillage alimentaire ?</label>
+          <select id="q_waste" required>
+            <option value="">-- Sélectionner une réponse --</option>
+            <option value="Non">Non</option>
+            <option value="En partie">En partie</option>
+            <option value="Oui">Oui</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>9. Comment juges-tu la grille tarifaire au regard du service rendu ?</label>
+          <select id="q_price" required>
+            <option value="">-- Sélectionner une réponse --</option>
+            <option value="Excessif">Excessif</option>
+            <option value="Correct">Correct</option>
+            <option value="Très abordable">Très abordable</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>10. Que proposerais-tu concrètement pour améliorer la restauration ? (Question ouverte)</label>
+          <textarea id="q_suggestions" rows="4" placeholder="Tes idées, remarques et pistes d'amélioration..."></textarea>
+        </div>
+
+        <button type="button" id="submit-btn" class="btn btn-primary" style="width:100%; font-size:1rem;" onclick="submitCantineForm()">Envoyer mes réponses</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const authToken = localStorage.getItem('site_token');
+
+    async function initPage() {
+      if (!authToken) {
+        document.getElementById('not-logged').classList.remove('hidden');
+        document.getElementById('cantine-form').classList.add('hidden');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/cantine/my', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            document.getElementById('q_quality').value = data.q_quality || '';
+            document.getElementById('q_quantity').value = data.q_quantity || '';
+            document.getElementById('q_variety').value = data.q_variety || '';
+            document.getElementById('q_temperature').value = data.q_temperature || '';
+            document.getElementById('q_ambiance').value = data.q_ambiance || '';
+            document.getElementById('q_waiting_time').value = data.q_waiting_time || '';
+            document.getElementById('q_hygiene').value = data.q_hygiene || '';
+            document.getElementById('q_waste').value = data.q_waste || '';
+            document.getElementById('q_price').value = data.q_price || '';
+            document.getElementById('q_suggestions').value = data.q_suggestions || '';
+            document.getElementById('submit-btn').innerText = "Modifier mes réponses";
+          }
+        } else if (res.status === 401) {
+          localStorage.removeItem('site_token');
+          document.getElementById('not-logged').classList.remove('hidden');
+          document.getElementById('cantine-form').classList.add('hidden');
+        }
+      } catch (e) {}
+    }
+
+    async function submitCantineForm() {
+      if (!authToken) {
+        alert("Vous devez être connecté.");
+        return;
+      }
+
+      const payload = {
+        q_quality: document.getElementById('q_quality').value,
+        q_quantity: document.getElementById('q_quantity').value,
+        q_variety: document.getElementById('q_variety').value,
+        q_temperature: document.getElementById('q_temperature').value,
+        q_ambiance: document.getElementById('q_ambiance').value,
+        q_waiting_time: document.getElementById('q_waiting_time').value,
+        q_hygiene: document.getElementById('q_hygiene').value,
+        q_waste: document.getElementById('q_waste').value,
+        q_price: document.getElementById('q_price').value,
+        q_suggestions: document.getElementById('q_suggestions').value
+      };
+
+      if (!payload.q_quality || !payload.q_quantity || !payload.q_variety) {
+        alert("Veuillez remplir les questions obligatoires du sondage.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/cantine/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("Tes réponses pour la commission restauration ont bien été enregistrées !");
+          window.location.href = 'index.html';
+        } else {
+          alert(data.error || "Une erreur s'est produite.");
+        }
+      } catch (err) {
+        alert("Erreur réseau ou serveur.");
+      }
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
