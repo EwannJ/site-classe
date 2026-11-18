@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Espace Classe 1G_H</title>
   <link rel="icon" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -144,8 +146,11 @@
             <div class="sheet-item" onclick="openIntakeForm()">
               <span>📋 Formulaire Délégués</span> ➔
             </div>
-            <div class="sheet-item" onclick="window.open('cantine-forms.html', '_blank')">
-              <span>🍽️ Sondage Commission Restauration</span> ➔
+            <div class="sheet-item" onclick="window.open('conseil-forms.html', '_blank')">
+              <span>📋️ Sondage Conseil de Classe</span> ➔
+            </div>
+            <div id="santa-link" class="sheet-item hidden" onclick="window.open('secret-santa.html', '_blank')">
+              <span>🎅 Père Noël secret</span> ➔
             </div>
           </div>
         </div>
@@ -343,6 +348,20 @@
 
   </main>
 
+  <!-- BANDEAU / POP-UP D'INSTALLATION PWA (Android & iOS) -->
+  <div id="pwa-install-banner" class="cookie-banner hidden">
+    <div style="max-width: 650px;">
+      <h4 id="pwa-title" style="margin-bottom: 0.3rem; font-size: 1.05rem;">📱 Installer l'application</h4>
+      <p id="pwa-text" style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+        Installez l'Espace Classe 1G_H sur votre écran d'accueil pour y accéder rapidement comme une application native !
+      </p>
+    </div>
+    <div class="cookie-buttons">
+      <button class="btn btn-outline" onclick="dismissPwaBanner()">Plus tard</button>
+      <button id="pwa-action-btn" class="btn btn-primary" onclick="installPwa()">Installer</button>
+    </div>
+  </div>
+
   <div id="cookie-banner" class="cookie-banner hidden">
     <div style="max-width: 650px;">
       <h4 style="margin-bottom: 0.3rem; font-size: 1.05rem;">🍪 Respect de votre vie privée</h4>
@@ -365,6 +384,7 @@
     let authToken = localStorage.getItem('site_token') || null;
     let currentUserProfile = null;
     let editingPostId = null;
+    let deferredPrompt = null; // Variable pour stocker l'événement d'installation PWA
 
     async function apiFetch(endpoint, method = 'GET', body = null) {
       const headers = { 'Content-Type': 'application/json' };
@@ -400,6 +420,51 @@
 
     function hideCookieBanner() {
       document.getElementById('cookie-banner').classList.add('hidden');
+    }
+
+    // --- Gestion de l'installation PWA (Android / Chrome / Edge) & iOS ---
+    function initPwaInstall() {
+      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+      // Si l'application est déjà lancée en mode PWA, on n'affiche rien
+      if (isInStandaloneMode) return;
+
+      if (isIos) {
+        // Affichage des instructions spécifiques pour iOS (Safari)
+        const banner = document.getElementById('pwa-install-banner');
+        const title = document.getElementById('pwa-title');
+        const text = document.getElementById('pwa-text');
+        const actionBtn = document.getElementById('pwa-action-btn');
+
+        title.innerText = "📱 Installer sur iPhone / iPad";
+        text.innerHTML = "Appuyez sur le bouton de partage <strong>⎋</strong> en bas de votre navigateur Safari, puis sélectionnez <strong>Sur l'écran d'accueil</strong>.";
+        actionBtn.style.display = 'none'; // Pas de bouton d'installation automatique possible sur iOS
+        banner.classList.remove('hidden');
+      } else {
+        // Pour les navigateurs compatibles avec l'événement beforeinstallprompt (Android / Chrome / PC)
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          document.getElementById('pwa-install-banner').classList.remove('hidden');
+        });
+      }
+    }
+
+    async function installPwa() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('Utilisateur a accepté l\'installation');
+        }
+        deferredPrompt = null;
+        document.getElementById('pwa-install-banner').classList.add('hidden');
+      }
+    }
+
+    function dismissPwaBanner() {
+      document.getElementById('pwa-install-banner').classList.add('hidden');
     }
 
     function showSection(sectionId) {
@@ -516,6 +581,15 @@
 
     async function initApp() {
       checkCookieConsent();
+
+      // Enregistrement dynamique du Service Worker hébergé par index.py
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+          .then(() => console.log('Service Worker enregistré avec succès.'))
+          .catch((err) => console.log('Erreur Service Worker:', err));
+      }
+
+      initPwaInstall(); // Initialisation de la vérification d'installation PWA / iOS
 
       if (authToken) {
         try {
@@ -862,6 +936,11 @@
     }
 
     initApp();
+  </script>
+  <script>
+    fetch('/api/santa/features').then(r => r.json())
+      .then(f => { if (f.secret_santa) document.getElementById('santa-link').classList.remove('hidden'); })
+      .catch(() => {});
   </script>
 </body>
 </html>
