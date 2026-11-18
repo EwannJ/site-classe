@@ -58,7 +58,7 @@
 
       <form id="conseil-form">
         <div class="form-group">
-          <label>Prénom (et nom pour Adam)</label>
+          <label>Prénom</label>
           <input type="text" id="q_nom_prenom" required placeholder="Ex : Thomas (ou Adam Dupont)">
         </div>
 
@@ -134,7 +134,7 @@
         </div>
 
         <div class="form-group">
-          <label>As-tu dû faire de l'AP (suite à la décision du conseil d'ambiance) ?</label>
+          <label>As-tu choisi de faire de l'AP ?</label>
           <select id="q_fait_ap" required onchange="toggleApSection()">
             <option value="">-- Sélectionner --</option>
             <option value="Oui">Oui</option>
@@ -152,12 +152,8 @@
           <h3 class="section-title">AP (Accompagnement Personnalisé)</h3>
 
           <div class="form-group">
-            <label>Quel AP as-tu dû suivre ?</label>
-            <select id="q_quel_ap">
-              <option value="">-- Sélectionner --</option>
-              <option value="Math">Math</option>
-              <option value="Français">Français</option>
-            </select>
+            <label>Quel AP suis-tu ?</label>
+            <textarea id="q_quel_ap" rows="3" placeholder="L'ap suivi"></textarea>
           </div>
 
           <div class="form-group">
@@ -195,10 +191,10 @@
           <select id="q_activites_extrasolaires" required>
             <option value="">-- Sélectionner --</option>
             <option value="Je ne fais pas d'activités extrascolaires">Je ne fais pas d'activités extrascolaires</option>
-            <option value="]-∞;1[">]-∞;1[</option>
-            <option value="[1;3[">[1;3[</option>
-            <option value="[3;5]">[3;5]</option>
-            <option value="]5;+∞[">]5;+∞</option>
+            <option value="]-∞;1[">Moins d'1h[</option>
+            <option value="[1;3[">Entre 1h et 3h</option>
+            <option value="[3;5]">Entre 3h et 5 h</option>
+            <option value="]5;+∞[">PLus de 5h</option>
           </select>
         </div>
 
