@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Préparation Conseil de Classe - Classe 1G_H</title>
+  <link rel="icon" href="icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); padding: 2rem 1rem; line-height: 1.6; }
+    .container { max-width: 750px; margin: 0 auto; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.8rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem; }
+    .btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+    select, textarea, input[type="text"] { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.95rem; background: #f8fafc; }
+    .hidden { display: none !important; }
+    .info-box { background: #eff6ff; border-left: 4px solid var(--primary); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; color: #1e40af; }
+    h3.section-title { margin-top: 1.8rem; margin-bottom: 1rem; font-size: 1.1rem; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 0.3rem; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2>🎓 Préparation au Conseil de Classe</h2>
+        <a href="index.html" class="btn btn-outline">⬅ Retour</a>
+      </div>
+
+      <div class="info-box">
+        📅 <strong>Conseil de classe du 10 novembre</strong><br>
+        Ce formulaire servira à vos chers délégués à préparer le conseil de classe en récoltant vos doléances et votre avis sur ce trimestre. Vos réponses seront lues et un résumé vous sera présenté à la prochaine vie de classe.
+      </div>
+
+      <div id="not-logged" class="hidden" style="background: #fef2f2; border: 1px solid #f87171; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; color: #991b1b; text-align: center;">
+        <h3 style="margin-bottom: 0.5rem;">⛔ Connexion requise</h3>
+        <p style="margin-bottom: 1rem;">Vous devez être <strong>connecté</strong> à votre compte pour répondre à ce formulaire.</p>
+        <a href="index.html" class="btn btn-primary">Se connecter sur le site</a>
+      </div>
+
+      <form id="conseil-form">
+        <div class="form-group">
+          <label>Prénom (et nom pour Adam)</label>
+          <input type="text" id="q_nom_prenom" required placeholder="Ex : Thomas (ou Adam Dupont)">
+        </div>
+
+        <h3 class="section-title">Ambiance et intégration</h3>
+
+        <div class="form-group">
+          <label>Je me sens intégré dans la classe (de 1 : Totalement faux à 6 : Totalement vraie)</label>
+          <select id="q_integre" required>
+            <option value="">-- Sélectionner une note --</option>
+            <option value="1">1 - Totalement faux</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6 - Totalement vraie</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Je suis à l'aise pour m'exprimer à l'oral (de 1 : Totalement faux à 6 : Totalement vraie)</label>
+          <select id="q_aise_oral" required>
+            <option value="">-- Sélectionner une note --</option>
+            <option value="1">1 - Totalement faux</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6 - Totalement vraie</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Je suis respecté par mes camarades (de 1 : Totalement faux à 6 : Totalement vraie)</label>
+          <select id="q_respecte" required>
+            <option value="">-- Sélectionner une note --</option>
+            <option value="1">1 - Totalement faux</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6 - Totalement vraie</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Notez le climat dans la classe lors des cours (de 1 à 6)</label>
+          <select id="q_climat_cours" required>
+            <option value="">-- Sélectionner une note --</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Y a-t-il des situations ou comportements qui vous dérangent dans la classe ? (si oui, pourquoi ?)</label>
+          <textarea id="q_comportements_derangeants" rows="3" placeholder="Vos remarques..."></textarea>
+        </div>
+
+        <h3 class="section-title">Rapport aux cours</h3>
+
+        <div class="form-group">
+          <label>Quelle(s) matière(s) préfères-tu et pourquoi ?</label>
+          <textarea id="q_matieres_pref" rows="2" placeholder="Vos réponses..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Quelle(s) matière(s) te pose(nt) le plus de difficultés et pourquoi ?</label>
+          <textarea id="q_matieres_diff" rows="2" placeholder="Vos réponses..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>As-tu dû faire de l'AP (suite à la décision du conseil d'ambiance) ?</label>
+          <select id="q_fait_ap" required onchange="toggleApSection()">
+            <option value="">-- Sélectionner --</option>
+            <option value="Oui">Oui</option>
+            <option value="Non">Non</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>As-tu une remarque particulière à nous faire parvenir sur les cours et professeurs ?</label>
+          <textarea id="q_remarques_profs" rows="3" placeholder="Vos remarques..."></textarea>
+        </div>
+
+        <!-- Section conditionnelle pour l'AP -->
+        <div id="ap-questions-block" class="hidden">
+          <h3 class="section-title">AP (Accompagnement Personnalisé)</h3>
+
+          <div class="form-group">
+            <label>Quel AP as-tu dû suivre ?</label>
+            <select id="q_quel_ap">
+              <option value="">-- Sélectionner --</option>
+              <option value="Math">Math</option>
+              <option value="Français">Français</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>As-tu eu l'aide dont tu avais besoin lors de l'AP ?</label>
+            <select id="q_aide_ap">
+              <option value="">-- Sélectionner --</option>
+              <option value="Oui">Oui</option>
+              <option value="Non">Non</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Es-tu satisfait de l'AP ?</label>
+            <select id="q_satisfait_ap">
+              <option value="">-- Sélectionner --</option>
+              <option value="Oui">Oui</option>
+              <option value="Non">Non</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Penses-tu que cet AP était utile ?</label>
+            <select id="q_utile_ap">
+              <option value="">-- Sélectionner --</option>
+              <option value="Oui">Oui</option>
+              <option value="Non">Non</option>
+            </select>
+          </div>
+        </div>
+
+        <h3 class="section-title">Réponse individualisée</h3>
+
+        <div class="form-group">
+          <label>Combien de temps passes-tu à faire des activités extrascolaires par semaine en moyenne ? (en heure)</label>
+          <select id="q_activites_extrasolaires" required>
+            <option value="">-- Sélectionner --</option>
+            <option value="Je ne fais pas d'activités extrascolaires">Je ne fais pas d'activités extrascolaires</option>
+            <option value="]-∞;1[">]-∞;1[</option>
+            <option value="[1;3[">[1;3[</option>
+            <option value="[3;5]">[3;5]</option>
+            <option value="]5;+∞[">]5;+∞</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Combien de temps passes-tu à faire tes devoirs par semaine en moyenne ?</label>
+          <select id="q_temps_devoirs" required>
+            <option value="">-- Sélectionner --</option>
+            <option value="Moins d'1h">Moins d'1h</option>
+            <option value="Entre 1h et 3h">Entre 1h et 3h</option>
+            <option value="Entre 3h et 5h">Entre 3h et 5h</option>
+            <option value="Plus de 5h">Plus de 5h</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Trouves-tu la charge de travail trop conséquente ?</label>
+          <select id="q_charge_travail" required>
+            <option value="">-- Sélectionner --</option>
+            <option value="Oui">Oui</option>
+            <option value="Non">Non</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Arrives-tu à t'organiser dans ton travail scolaire ?</label>
+          <select id="q_organisation" required>
+            <option value="">-- Sélectionner --</option>
+            <option value="Oui">Oui</option>
+            <option value="Non">Non</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Es-tu satisfait de tes notes en général ?</label>
+          <select id="q_satisfaction_notes" required>
+            <option value="">-- Sélectionner --</option>
+            <option value="Oui">Oui</option>
+            <option value="Non">Non</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Comment te sens-tu dans la classe ?</label>
+          <textarea id="q_ressenti_classe" rows="2" placeholder="Exprimez-vous..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Comment te sens-tu dans le lycée ?</label>
+          <textarea id="q_ressenti_lycee" rows="2" placeholder="Exprimez-vous..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Que penses-tu des relations entre élèves ?</label>
+          <textarea id="q_relations_eleves" rows="2" placeholder="Exprimez-vous..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Que penses-tu des relations élèves-professeurs ? Te sens-tu à l'aise à demander de l'aide à tes professeurs ? Penses-tu que le climat général en classe est bon avec eux ?</label>
+          <textarea id="q_relations_profs" rows="2" placeholder="Exprimez-vous..."></textarea>
+        </div>
+
+        <h3 class="section-title">Fin</h3>
+
+        <div class="form-group">
+          <label>Autre remarque ? (facultatif)</label>
+          <textarea id="q_autre_remarque" rows="3" placeholder="Vos suggestions finales..."></textarea>
+        </div>
+
+        <button type="button" id="submit-btn" class="btn btn-primary" style="width:100%; font-size:1rem;" onclick="submitConseilForm()">Envoyer mes réponses</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const authToken = localStorage.getItem('site_token');
+
+    function toggleApSection() {
+      const faitAp = document.getElementById('q_fait_ap').value;
+      const apSection = document.getElementById('ap-questions-block');
+      const apInputs = ['q_quel_ap', 'q_aide_ap', 'q_satisfait_ap', 'q_utile_ap'];
+
+      if (faitAp === 'Oui') {
+        apSection.classList.remove('hidden');
+        apInputs.forEach(id => document.getElementById(id).setAttribute('required', 'required'));
+      } else {
+        apSection.classList.add('hidden');
+        apInputs.forEach(id => {
+          const el = document.getElementById(id);
+          el.removeAttribute('required');
+          el.value = '';
+        });
+      }
+    }
+
+    async function initPage() {
+      if (!authToken) {
+        document.getElementById('not-logged').classList.remove('hidden');
+        document.getElementById('conseil-form').classList.add('hidden');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/conseil-classe/my', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            document.getElementById('q_nom_prenom').value = data.q_nom_prenom || '';
+            document.getElementById('q_integre').value = data.q_integre || '';
+            document.getElementById('q_aise_oral').value = data.q_aise_oral || '';
+            document.getElementById('q_respecte').value = data.q_respecte || '';
+            document.getElementById('q_climat_cours').value = data.q_climat_cours || '';
+            document.getElementById('q_comportements_derangeants').value = data.q_comportements_derangeants || '';
+            document.getElementById('q_matieres_pref').value = data.q_matieres_pref || '';
+            document.getElementById('q_matieres_diff').value = data.q_matieres_diff || '';
+            document.getElementById('q_fait_ap').value = data.q_fait_ap || '';
+            
+            // Afficher ou cacher la section AP selon la réponse enregistrée
+            toggleApSection();
+
+            document.getElementById('q_remarques_profs').value = data.q_remarques_profs || '';
+            document.getElementById('q_quel_ap').value = data.q_quel_ap || '';
+            document.getElementById('q_aide_ap').value = data.q_aide_ap || '';
+            document.getElementById('q_satisfait_ap').value = data.q_satisfait_ap || '';
+            document.getElementById('q_utile_ap').value = data.q_utile_ap || '';
+            document.getElementById('q_activites_extrasolaires').value = data.q_activites_extrasolaires || '';
+            document.getElementById('q_temps_devoirs').value = data.q_temps_devoirs || '';
+            document.getElementById('q_charge_travail').value = data.q_charge_travail || '';
+            document.getElementById('q_organisation').value = data.q_organisation || '';
+            document.getElementById('q_satisfaction_notes').value = data.q_satisfaction_notes || '';
+            document.getElementById('q_ressenti_classe').value = data.q_ressenti_classe || '';
+            document.getElementById('q_ressenti_lycee').value = data.q_ressenti_lycee || '';
+            document.getElementById('q_relations_eleves').value = data.q_relations_eleves || '';
+            document.getElementById('q_relations_profs').value = data.q_relations_profs || '';
+            document.getElementById('q_autre_remarque').value = data.q_autre_remarque || '';
+            
+            document.getElementById('submit-btn').innerText = "Modifier mes réponses";
+          }
+        } else if (res.status === 401) {
+          localStorage.removeItem('site_token');
+          document.getElementById('not-logged').classList.remove('hidden');
+          document.getElementById('conseil-form').classList.add('hidden');
+        }
+      } catch (e) {}
+    }
+
+    async function submitConseilForm() {
+      if (!authToken) {
+        alert("Vous devez être connecté.");
+        return;
+      }
+
+      const form = document.getElementById('conseil-form');
+      if (!form.reportValidity()) {
+        return;
+      }
+
+      const faitAp = document.getElementById('q_fait_ap').value;
+
+      const payload = {
+        q_nom_prenom: document.getElementById('q_nom_prenom').value,
+        q_integre: parseInt(document.getElementById('q_integre').value, 10),
+        q_aise_oral: parseInt(document.getElementById('q_aise_oral').value, 10),
+        q_respecte: parseInt(document.getElementById('q_respecte').value, 10),
+        q_climat_cours: parseInt(document.getElementById('q_climat_cours').value, 10),
+        q_comportements_derangeants: document.getElementById('q_comportements_derangeants').value,
+        q_matieres_pref: document.getElementById('q_matieres_pref').value,
+        q_matieres_diff: document.getElementById('q_matieres_diff').value,
+        q_fait_ap: faitAp,
+        q_remarques_profs: document.getElementById('q_remarques_profs').value,
+        q_quel_ap: faitAp === 'Oui' ? document.getElementById('q_quel_ap').value : null,
+        q_aide_ap: faitAp === 'Oui' ? document.getElementById('q_aide_ap').value : null,
+        q_satisfait_ap: faitAp === 'Oui' ? document.getElementById('q_satisfait_ap').value : null,
+        q_utile_ap: faitAp === 'Oui' ? document.getElementById('q_utile_ap').value : null,
+        q_activites_extrasolaires: document.getElementById('q_activites_extrasolaires').value,
+        q_temps_devoirs: document.getElementById('q_temps_devoirs').value,
+        q_charge_travail: document.getElementById('q_charge_travail').value,
+        q_organisation: document.getElementById('q_organisation').value,
+        q_satisfaction_notes: document.getElementById('q_satisfaction_notes').value,
+        q_ressenti_classe: document.getElementById('q_ressenti_classe').value,
+        q_ressenti_lycee: document.getElementById('q_ressenti_lycee').value,
+        q_relations_eleves: document.getElementById('q_relations_eleves').value,
+        q_relations_profs: document.getElementById('q_relations_profs').value,
+        q_autre_remarque: document.getElementById('q_autre_remarque').value
+      };
+
+      try {
+        const res = await fetch('/api/conseil-classe/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("Tes réponses pour le conseil de classe ont bien été enregistrées !");
+          window.location.href = 'index.html';
+        } else {
+          alert(data.error || "Une erreur s'est produite.");
+        }
+      } catch (err) {
+        alert("Erreur réseau ou serveur.");
+      }
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
